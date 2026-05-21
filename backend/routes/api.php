@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\ExaminationController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\MedicalRecordController;
+use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\PatientController;
 use App\Http\Controllers\Api\PrescriptionController;
 use App\Http\Controllers\Api\VisitController;
@@ -106,6 +107,12 @@ Route::middleware(['auth.jwt', 'audit.log'])->group(function () {
     Route::get('invoices/{invoice}',               [InvoiceController::class, 'show']);
     Route::post('invoices/{invoice}/pay',          [InvoiceController::class, 'pay']);
     Route::post('invoices/{invoice}/cancel',       [InvoiceController::class, 'cancel']);
+
+    // ============================================================
+    // Manajemen Akun — hanya super_admin (diproteksi di controller)
+    // ============================================================
+    Route::apiResource('users', UserController::class);
+    Route::patch('users/{user}/activate', [UserController::class, 'activate']);
 
     // ============================================================
     // Fase 9 — Laporan & Dashboard

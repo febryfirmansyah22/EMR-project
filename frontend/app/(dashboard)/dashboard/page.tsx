@@ -435,7 +435,7 @@ function Banner({
             </span>
           </div>
           <div className="min-w-0">
-            <h1 className="text-[17px] sm:text-[20px] font-bold leading-tight tracking-tight truncate">Klinik OMARA</h1>
+            <h1 className="text-[15px] sm:text-[18px] font-bold leading-tight tracking-tight truncate">Klinik Elzahrawi Medika Cihaurbeuti</h1>
             <p className="mt-0.5 flex items-center gap-1.5 text-[11px] sm:text-[12px] text-white/70 truncate">
               <span className="material-symbols-outlined text-[13px] shrink-0">monitoring</span>
               <span className="truncate">Sistem Laporan Kunjungan Pasien · 2026</span>
@@ -1052,7 +1052,7 @@ export default function DashboardPage() {
       {/* Footer */}
       <div className="pt-3 pb-1 text-center">
         <p className="text-[11px] text-[#94A3B8]">
-          &copy; 2026 Klinik OMARA · Built with care
+          &copy; 2026 Klinik Elzahrawi Medika Cihaurbeuti · Built with care
         </p>
       </div>
     </div>

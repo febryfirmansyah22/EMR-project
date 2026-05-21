@@ -77,6 +77,12 @@ const NAV_ITEMS: NavItem[] = [
     icon: 'tune',
     roles: ['super_admin', 'admin_klinik'],
   },
+  {
+    label: 'Manajemen Akun',
+    href: '/manajemen-akun',
+    icon: 'manage_accounts',
+    roles: ['super_admin'],
+  },
 ]
 
 const MASTER_SUB: { href: string; label: string; icon: string }[] = [
