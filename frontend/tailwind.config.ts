@@ -72,7 +72,17 @@ const config: Config = {
           variant:  "var(--outline-variant)",
         },
 
-        /* OMARA primary scale */
+        /* OMARA primary scale (numbered, for landing page) */
+        "primary-50":  "#EBF4FF",
+        "primary-100": "#dae2ff",
+        "primary-200": "#b2c5ff",
+        "primary-400": "#3a7fdc",
+        "primary-500": "#0052cc",
+        "primary-600": "#0040a2",
+        "primary-700": "#003d9b",
+        "primary-900": "#001848",
+
+        /* OMARA primary container tokens */
         "primary-container":  "var(--primary-container)",
         "primary-fixed":      "var(--primary-fixed)",
         "primary-fixed-dim":  "var(--primary-fixed-dim)",

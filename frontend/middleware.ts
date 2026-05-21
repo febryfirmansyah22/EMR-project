@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const PUBLIC_ROUTES = ['/login']
+const PUBLIC_ROUTES = ['/', '/login']
 
 export function middleware(request: NextRequest): NextResponse {
   const token = request.cookies.get('auth_token')?.value
   const { pathname } = request.nextUrl
 
-  const isPublic = PUBLIC_ROUTES.some((route) => pathname.startsWith(route))
+  const isPublic = PUBLIC_ROUTES.some((route) =>
+    route === '/' ? pathname === '/' : pathname.startsWith(route)
+  )
 
   if (!token && !isPublic) {
     const loginUrl = new URL('/login', request.url)
