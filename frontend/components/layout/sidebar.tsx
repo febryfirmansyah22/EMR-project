@@ -78,6 +78,12 @@ const NAV_ITEMS: NavItem[] = [
     roles: ['super_admin', 'admin_klinik'],
   },
   {
+    label: 'Jadwal Perawat',
+    href: '/jadwal-perawat',
+    icon: 'calendar_month',
+    roles: ['super_admin', 'admin_klinik', 'perawat'],
+  },
+  {
     label: 'Manajemen Akun',
     href: '/manajemen-akun',
     icon: 'manage_accounts',

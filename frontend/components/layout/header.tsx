@@ -32,6 +32,8 @@ const BREADCRUMB_MAP: Record<string, string> = {
   kunjungan_:  'Kunjungan',
   pendapatan: 'Pendapatan',
   master:     'Master Data',
+  'jadwal-perawat': 'Jadwal Perawat',
+  'manajemen-akun': 'Manajemen Akun',
   obat:       'Obat',
   tindakan:   'Tindakan',
   polis:      'Poli',
