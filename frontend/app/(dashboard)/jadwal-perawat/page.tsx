@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { toast } from 'sonner'
+import { useAuth } from '@/hooks/useAuth'
 
 /* ────────────────────────────────────────────────────────────────
    TYPES & CONSTANTS
@@ -235,12 +236,22 @@ function DayCard({
    ──────────────────────────────────────────────────────────────── */
 type TabKey = 'beranda' | 'jadwal' | 'rekap'
 
+const REKAP_ROLES = ['super_admin', 'admin_klinik', 'owner']
+
 export default function JadwalPerawatPage() {
   const now = new Date()
+  const { user } = useAuth()
+  const canSeeRekap = user ? REKAP_ROLES.includes(user.role) : false
+
   const [year, setYear]   = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth())
   const [data, setData]   = useState<Record<number, DayEntry>>({})
   const [tab, setTab]     = useState<TabKey>('jadwal')
+
+  /* If current tab is rekap but user lost access, fall back to jadwal */
+  useEffect(() => {
+    if (tab === 'rekap' && !canSeeRekap) setTab('jadwal')
+  }, [canSeeRekap, tab])
 
   /* Load from localStorage on mount and whenever month changes */
   useEffect(() => {
@@ -398,24 +409,26 @@ export default function JadwalPerawatPage() {
         </div>
       </div>
 
-      {/* Month stats */}
-      <div className="rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
-        <div className="px-4 py-3 border-b border-[#E2E8F0]">
-          <p className="text-[12px] font-bold text-[#0F2540]">Ringkasan {BULAN_NAMA[month]} {year}</p>
+      {/* Month stats — hanya untuk super_admin, admin_klinik, owner */}
+      {canSeeRekap && (
+        <div className="rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
+          <div className="px-4 py-3 border-b border-[#E2E8F0]">
+            <p className="text-[12px] font-bold text-[#0F2540]">Ringkasan {BULAN_NAMA[month]} {year}</p>
+          </div>
+          <div className="grid grid-cols-3 divide-x divide-[#F1F5F9]">
+            {[
+              { label: 'Shift', value: stats.shiftCount },
+              { label: 'Infus', value: stats.totalInfus },
+              { label: 'RNP', value: stats.totalRnp },
+            ].map(s => (
+              <div key={s.label} className="px-4 py-3 text-center">
+                <p className="text-[22px] font-bold text-[#0F2540]">{s.value}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">{s.label}</p>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="grid grid-cols-3 divide-x divide-[#F1F5F9]">
-          {[
-            { label: 'Shift', value: stats.shiftCount },
-            { label: 'Infus', value: stats.totalInfus },
-            { label: 'RNP', value: stats.totalRnp },
-          ].map(s => (
-            <div key={s.label} className="px-4 py-3 text-center">
-              <p className="text-[22px] font-bold text-[#0F2540]">{s.value}</p>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">{s.label}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+      )}
 
       {/* Upcoming days */}
       <div className="rounded-xl border border-[#E2E8F0] bg-white shadow-sm overflow-hidden">
@@ -486,19 +499,21 @@ export default function JadwalPerawatPage() {
           </div>
         )}
 
-        {/* Stats bar — always visible */}
-        <div className="mt-3 grid grid-cols-3 divide-x divide-white/10 rounded-xl bg-white/10 backdrop-blur-sm">
-          {[
-            { label: 'Shift', value: stats.shiftCount },
-            { label: 'Infus', value: stats.totalInfus },
-            { label: 'Pasien RNP', value: stats.totalRnp },
-          ].map(s => (
-            <div key={s.label} className="px-3 py-2.5 text-center">
-              <p className="text-[20px] font-bold leading-tight">{s.value}</p>
-              <p className="text-[10px] text-white/60 font-medium">{s.label}</p>
-            </div>
-          ))}
-        </div>
+        {/* Stats bar — hanya untuk role yang boleh lihat rekap */}
+        {canSeeRekap && (
+          <div className="mt-3 grid grid-cols-3 divide-x divide-white/10 rounded-xl bg-white/10 backdrop-blur-sm">
+            {[
+              { label: 'Shift', value: stats.shiftCount },
+              { label: 'Infus', value: stats.totalInfus },
+              { label: 'Pasien RNP', value: stats.totalRnp },
+            ].map(s => (
+              <div key={s.label} className="px-3 py-2.5 text-center">
+                <p className="text-[20px] font-bold leading-tight">{s.value}</p>
+                <p className="text-[10px] text-white/60 font-medium">{s.label}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── Scrollable body ── */}
@@ -531,16 +546,16 @@ export default function JadwalPerawatPage() {
 
       {/* ── Bottom Navigation ── */}
       <div className="shrink-0 border-t border-[#E2E8F0] bg-white">
-        <div className="grid grid-cols-3">
-          {([
-            { key: 'beranda', label: 'Beranda', icon: 'home' },
-            { key: 'jadwal',  label: 'Jadwal',  icon: 'calendar_month' },
-            { key: 'rekap',   label: 'Rekap',   icon: 'bar_chart' },
-          ] as { key: TabKey; label: string; icon: string }[]).map(t => (
+        <div className={`grid ${canSeeRekap ? 'grid-cols-3' : 'grid-cols-2'}`}>
+          {(([
+            { key: 'beranda', label: 'Beranda', icon: 'home',           show: true },
+            { key: 'jadwal',  label: 'Jadwal',  icon: 'calendar_month', show: true },
+            { key: 'rekap',   label: 'Rekap',   icon: 'bar_chart',      show: canSeeRekap },
+          ] as { key: TabKey; label: string; icon: string; show: boolean }[]).filter(t => t.show)).map(t => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`flex flex-col items-center gap-1 py-3 text-[10px] font-semibold uppercase tracking-wide transition-colors ${
+              className={`relative flex flex-col items-center gap-1 py-3 text-[10px] font-semibold uppercase tracking-wide transition-colors ${
                 tab === t.key ? 'text-[#0052CC]' : 'text-[#94A3B8]'
               }`}
             >
@@ -550,7 +565,7 @@ export default function JadwalPerawatPage() {
               />
               {t.label}
               {tab === t.key && (
-                <span className="absolute bottom-0 h-0.5 w-10 rounded-full bg-[#0052CC]" />
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-10 rounded-full bg-[#0052CC]" />
               )}
             </button>
           ))}
