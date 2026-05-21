@@ -441,7 +441,7 @@ export default function ManajemenAkunPage() {
         ].map((s) => (
           <div key={s.label} className="rounded-lg border border-[#E2E8F0] bg-white p-4">
             <div className="flex items-center gap-2">
-              <Icon name={s.icon} className="icon-fill text-[18px]" style={{ color: s.color } as React.CSSProperties} />
+              <span style={{ color: s.color }}><Icon name={s.icon} className="icon-fill text-[18px]" /></span>
               <p className="text-[10px] font-bold uppercase tracking-wider text-[#94A3B8]">{s.label}</p>
             </div>
             <p className="mt-1.5 text-[24px] font-bold text-[#0F2540]">{s.value}</p>
