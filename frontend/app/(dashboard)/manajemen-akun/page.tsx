@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import api from '@/lib/api'
@@ -88,31 +88,22 @@ function UserFormDialog({
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({})
   const [loading, setLoading] = useState(false)
 
-  // Reset form when dialog opens
-  useState(() => {
-    if (open) {
-      if (editing) {
-        setForm({ name: editing.name, email: editing.email, password: '', role: editing.role, is_active: editing.is_active })
-      } else {
-        setForm(EMPTY_FORM)
-      }
-      setErrors({})
+  // Reset form whenever dialog opens or the edited user changes
+  useEffect(() => {
+    if (!open) return
+    if (editing) {
+      setForm({
+        name: editing.name,
+        email: editing.email,
+        password: '',
+        role: editing.role,
+        is_active: editing.is_active,
+      })
+    } else {
+      setForm(EMPTY_FORM)
     }
-  })
-
-  // Also reset when editing/open changes
-  const [prevOpen, setPrevOpen] = useState(false)
-  if (open !== prevOpen) {
-    setPrevOpen(open)
-    if (open) {
-      if (editing) {
-        setForm({ name: editing.name, email: editing.email, password: '', role: editing.role, is_active: editing.is_active })
-      } else {
-        setForm(EMPTY_FORM)
-      }
-      setErrors({})
-    }
-  }
+    setErrors({})
+  }, [open, editing])
 
   function set<K extends keyof FormState>(key: K, val: FormState[K]) {
     setForm(f => ({ ...f, [key]: val }))
