@@ -30,6 +30,21 @@ interface Meta {
   total: number
 }
 
+interface FormState {
+  name: string
+  email: string
+  password: string
+  role: Role | ''
+  is_active: boolean
+}
+
+/* ────────────────────────────────────────────────────────────────
+   CONSTANTS
+   ──────────────────────────────────────────────────────────────── */
+const EMPTY_FORM: FormState = {
+  name: '', email: '', password: '', role: '', is_active: true,
+}
+
 const ROLE_OPTIONS: { value: Role | ''; label: string }[] = [
   { value: '',             label: 'Semua Role' },
   { value: 'super_admin',  label: 'Super Admin' },
@@ -61,71 +76,87 @@ const ROLE_COLOR: Record<string, string> = {
   owner:        'bg-[#F3F4F6] text-[#374151]',
 }
 
+/* ────────────────────────────────────────────────────────────────
+   MODULE-LEVEL UI HELPERS
+   (Defined outside any component so they are stable references)
+   ──────────────────────────────────────────────────────────────── */
 function Icon({ name, className = '' }: { name: string; className?: string }) {
   return <span className={`material-symbols-outlined ${className}`} aria-hidden="true">{name}</span>
+}
+
+function FieldGroup({
+  label,
+  error,
+  children,
+}: {
+  label: string
+  error?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-[12px] font-semibold text-[#334155]">{label}</Label>
+      {children}
+      {error && <p className="text-[11px] text-[#FF5630]">{error}</p>}
+    </div>
+  )
 }
 
 /* ────────────────────────────────────────────────────────────────
    FORM DIALOG
    ──────────────────────────────────────────────────────────────── */
-interface FormState {
-  name: string; email: string; password: string; role: Role | ''; is_active: boolean;
-}
-
-const EMPTY_FORM: FormState = {
-  name: '', email: '', password: '', role: '', is_active: true,
-}
-
 function UserFormDialog({
-  open, editing, onClose, onSuccess,
+  open,
+  editing,
+  onClose,
+  onSuccess,
 }: {
   open: boolean
   editing: UserAccount | null
   onClose: () => void
   onSuccess: () => void
 }) {
-  const [form, setForm] = useState<FormState>(EMPTY_FORM)
+  const [form, setForm]     = useState<FormState>(EMPTY_FORM)
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({})
   const [loading, setLoading] = useState(false)
 
-  // Reset form whenever dialog opens or the edited user changes
+  /* Reset form only when dialog opens or the target user changes */
   useEffect(() => {
     if (!open) return
+    setErrors({})
     if (editing) {
       setForm({
-        name: editing.name,
-        email: editing.email,
-        password: '',
-        role: editing.role,
+        name:      editing.name,
+        email:     editing.email,
+        password:  '',
+        role:      editing.role,
         is_active: editing.is_active,
       })
     } else {
       setForm(EMPTY_FORM)
     }
-    setErrors({})
   }, [open, editing])
 
-  function set<K extends keyof FormState>(key: K, val: FormState[K]) {
-    setForm(f => ({ ...f, [key]: val }))
-    setErrors(e => ({ ...e, [key]: undefined }))
+  function setField<K extends keyof FormState>(key: K, val: FormState[K]) {
+    setForm(prev => ({ ...prev, [key]: val }))
+    setErrors(prev => ({ ...prev, [key]: undefined }))
   }
 
   async function handleSubmit() {
-    // Client-side validation
-    const errs: typeof errors = {}
-    if (!form.name.trim())    errs.name = 'Nama wajib diisi.'
-    if (!form.email.trim())   errs.email = 'Email wajib diisi.'
-    if (!form.role)           errs.role = 'Role wajib dipilih.'
-    if (!editing && !form.password) errs.password = 'Password wajib diisi.'
-    if (form.password && form.password.length < 8) errs.password = 'Password minimal 8 karakter.'
+    const errs: Partial<Record<keyof FormState, string>> = {}
+    if (!form.name.trim())                              errs.name     = 'Nama wajib diisi.'
+    if (!form.email.trim())                             errs.email    = 'Email wajib diisi.'
+    if (!form.role)                                     errs.role     = 'Role wajib dipilih.'
+    if (!editing && !form.password)                     errs.password = 'Password wajib diisi.'
+    if (form.password && form.password.length < 8)      errs.password = 'Password minimal 8 karakter.'
     if (Object.keys(errs).length) { setErrors(errs); return }
 
     setLoading(true)
     try {
-      const payload: Record<string, any> = {
-        name: form.name.trim(),
-        email: form.email.trim(),
-        role: form.role,
+      const payload: Record<string, unknown> = {
+        name:      form.name.trim(),
+        email:     form.email.trim(),
+        role:      form.role,
         is_active: form.is_active,
       }
       if (form.password) payload.password = form.password
@@ -139,31 +170,23 @@ function UserFormDialog({
       }
       onSuccess()
       onClose()
-    } catch (err: any) {
-      const msg = err?.response?.data?.message
-      const apiErrors = err?.response?.data?.errors
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } }
+      const apiErrors = e?.response?.data?.errors
       if (apiErrors) {
-        const mapped: typeof errors = {}
-        if (apiErrors.name)     mapped.name     = apiErrors.name[0]
-        if (apiErrors.email)    mapped.email    = apiErrors.email[0]
-        if (apiErrors.password) mapped.password = apiErrors.password[0]
-        if (apiErrors.role)     mapped.role     = apiErrors.role[0]
-        setErrors(mapped)
+        setErrors({
+          name:     apiErrors.name?.[0],
+          email:    apiErrors.email?.[0],
+          password: apiErrors.password?.[0],
+          role:     apiErrors.role?.[0],
+        })
       } else {
-        toast.error(msg || 'Terjadi kesalahan')
+        toast.error(e?.response?.data?.message || 'Terjadi kesalahan')
       }
     } finally {
       setLoading(false)
     }
   }
-
-  const FieldGroup = ({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) => (
-    <div className="space-y-1.5">
-      <Label className="text-[12px] font-semibold text-[#334155]">{label}</Label>
-      {children}
-      {error && <p className="text-[11px] text-[#FF5630]">{error}</p>}
-    </div>
-  )
 
   return (
     <Dialog open={open} onOpenChange={v => { if (!v) onClose() }}>
@@ -179,7 +202,7 @@ function UserFormDialog({
           <FieldGroup label="Nama Lengkap" error={errors.name}>
             <Input
               value={form.name}
-              onChange={e => set('name', e.target.value)}
+              onChange={e => setField('name', e.target.value)}
               placeholder="Nama lengkap pengguna"
               className="h-9 text-[13px]"
             />
@@ -189,7 +212,7 @@ function UserFormDialog({
             <Input
               type="email"
               value={form.email}
-              onChange={e => set('email', e.target.value)}
+              onChange={e => setField('email', e.target.value)}
               placeholder="email@klinik.com"
               className="h-9 text-[13px]"
             />
@@ -202,7 +225,7 @@ function UserFormDialog({
             <Input
               type="password"
               value={form.password}
-              onChange={e => set('password', e.target.value)}
+              onChange={e => setField('password', e.target.value)}
               placeholder={editing ? '••••••••' : 'Minimal 8 karakter'}
               className="h-9 text-[13px]"
             />
@@ -211,7 +234,7 @@ function UserFormDialog({
           <FieldGroup label="Role / Jabatan" error={errors.role}>
             <select
               value={form.role}
-              onChange={e => set('role', e.target.value as Role)}
+              onChange={e => setField('role', e.target.value as Role)}
               className="w-full h-9 rounded-md border border-[#c3c6d6] bg-white px-3 text-[13px] text-[#0F2540] focus:outline-none focus:ring-2 focus:ring-[#0052CC]/30"
             >
               <option value="">-- Pilih Role --</option>
@@ -229,7 +252,7 @@ function UserFormDialog({
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => set('is_active', !form.is_active)}
+                onClick={() => setField('is_active', !form.is_active)}
                 className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${form.is_active ? 'bg-[#0052CC]' : 'bg-[#CBD5E1]'}`}
               >
                 <span className={`pointer-events-none inline-block size-4 rounded-full bg-white shadow transition-transform ${form.is_active ? 'translate-x-4' : 'translate-x-0'}`} />
@@ -276,7 +299,7 @@ export default function ManajemenAkunPage() {
   const [dialogOpen, setDialog] = useState(false)
   const [editing, setEditing]   = useState<UserAccount | null>(null)
 
-  // Access guard — redirect message if not super_admin
+  /* Access guard */
   if (currentUser && currentUser.role !== 'super_admin') {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4 text-center">
@@ -311,8 +334,9 @@ export default function ManajemenAkunPage() {
       toast.success(`Akun ${user.name} berhasil ${activate ? 'diaktifkan' : 'dinonaktifkan'}`)
       queryClient.invalidateQueries({ queryKey: ['users'] })
     },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.message || 'Terjadi kesalahan')
+    onError: (err: unknown) => {
+      const e = err as { response?: { data?: { message?: string } } }
+      toast.error(e?.response?.data?.message || 'Terjadi kesalahan')
     },
   })
 
@@ -325,6 +349,9 @@ export default function ManajemenAkunPage() {
     setEditing(user)
     setDialog(true)
   }
+
+  const activeCount   = data?.data.filter(u => u.is_active).length  ?? 0
+  const inactiveCount = data?.data.filter(u => !u.is_active).length ?? 0
 
   const columns: Column<UserAccount>[] = [
     {
@@ -407,14 +434,14 @@ export default function ManajemenAkunPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { label: 'Total Akun', value: data?.meta.total ?? '—', icon: 'group', color: '#0052CC' },
-          { label: 'Akun Aktif', value: data?.data.filter(u => u.is_active).length ?? '—', icon: 'check_circle', color: '#059669' },
-          { label: 'Akun Nonaktif', value: data?.data.filter(u => !u.is_active).length ?? '—', icon: 'block', color: '#DC2626' },
-          { label: 'Total Role', value: '7', icon: 'badge', color: '#7C3AED' },
+          { label: 'Total Akun',    value: data?.meta.total ?? '—', icon: 'group',         color: '#0052CC' },
+          { label: 'Akun Aktif',    value: activeCount,             icon: 'check_circle',  color: '#059669' },
+          { label: 'Akun Nonaktif', value: inactiveCount,           icon: 'block',         color: '#DC2626' },
+          { label: 'Total Role',    value: '7',                     icon: 'badge',         color: '#7C3AED' },
         ].map((s) => (
           <div key={s.label} className="rounded-lg border border-[#E2E8F0] bg-white p-4">
             <div className="flex items-center gap-2">
-              <Icon name={s.icon} className="icon-fill text-[18px]" style={{ color: s.color } as any} />
+              <Icon name={s.icon} className="icon-fill text-[18px]" style={{ color: s.color } as React.CSSProperties} />
               <p className="text-[10px] font-bold uppercase tracking-wider text-[#94A3B8]">{s.label}</p>
             </div>
             <p className="mt-1.5 text-[24px] font-bold text-[#0F2540]">{s.value}</p>
@@ -454,7 +481,7 @@ export default function ManajemenAkunPage() {
         pagination={data?.meta && data.meta.last_page > 1 ? {
           page,
           lastPage: data.meta.last_page,
-          total: data.meta.total,
+          total:    data.meta.total,
           onPageChange: setPage,
         } : undefined}
       />
