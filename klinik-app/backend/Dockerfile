@@ -21,7 +21,8 @@ RUN docker-php-ext-install \
     zip \
     bcmath \
     intl \
-    sodium
+    sodium \
+    opcache
 
 # Install GD
 RUN apk add --no-cache freetype-dev libjpeg-turbo-dev && \
@@ -57,6 +58,7 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache && \
 
 # Copy php.ini configuration
 COPY docker/php.ini /usr/local/etc/php/conf.d/app.ini
+COPY docker/fpm-pool.conf /usr/local/etc/php-fpm.d/www.conf
 
 EXPOSE 9000
 
