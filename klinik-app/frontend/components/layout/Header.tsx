@@ -12,7 +12,7 @@ interface HeaderProps {
 
 export function Header({ onMenuClick, user, title }: HeaderProps) {
   const logout = useLogout();
-  const { theme, toggle } = useTheme();
+  const { theme, mounted, toggle } = useTheme();
 
   return (
     <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-20 dark:bg-slate-800 dark:border-slate-700">
@@ -29,17 +29,19 @@ export function Header({ onMenuClick, user, title }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <button
-          onClick={toggle}
-          className="p-2 hover:bg-slate-100 rounded-lg dark:hover:bg-slate-700"
-          title={theme === "dark" ? "Mode Terang" : "Mode Gelap"}
-        >
-          {theme === "dark" ? (
-            <Sun size={18} className="text-yellow-400" />
-          ) : (
-            <Moon size={18} className="text-slate-500" />
-          )}
-        </button>
+        {mounted && (
+          <button
+            onClick={toggle}
+            className="p-2 hover:bg-slate-100 rounded-lg dark:hover:bg-slate-700"
+            title={theme === "dark" ? "Mode Terang" : "Mode Gelap"}
+          >
+            {theme === "dark" ? (
+              <Sun size={18} className="text-yellow-400" />
+            ) : (
+              <Moon size={18} className="text-slate-500" />
+            )}
+          </button>
+        )}
         <button className="p-2 hover:bg-slate-100 rounded-lg relative dark:hover:bg-slate-700">
           <Bell size={18} className="text-slate-500 dark:text-slate-400" />
         </button>
