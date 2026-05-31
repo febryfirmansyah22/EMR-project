@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: klinik_app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+      - ./backend/docker/php.ini:/usr/local/etc/php/conf.d/app.ini
+    networks:
+      - klinik_net
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: klinik_frontend
+    restart: unless-stopped
+    networks:
+      - klinik_net
+    depends_on:
+      - app
+    environment:
+      - NEXT_PUBLIC_API_URL=/api/v1
+
+  nginx:
+    image: nginx:alpine
+    container_name: klinik_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./backend:/var/www
+      - ./docker/nginx/simple.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - klinik_net
+    depends_on:
+      - app
+      - frontend
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: klinik_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: klinik_db
+      POSTGRES_USER: klinik_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-klinik2024secret}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - klinik_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U klinik_user -d klinik_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+networks:
+  klinik_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
