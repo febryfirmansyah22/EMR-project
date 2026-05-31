@@ -35,22 +35,22 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 bg-blue-600 rounded-2xl shadow-lg mb-4">
             <Stethoscope size={28} className="text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">Klinik App</h1>
-          <p className="text-slate-500 text-sm mt-1">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Klinik App</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
             Sistem Pencatatan Transaksi
           </p>
         </div>
 
         {/* Form */}
         <div className="card p-6">
-          <h2 className="text-lg font-semibold text-slate-900 mb-6">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-6">
             Masuk ke Akun
           </h2>
 
