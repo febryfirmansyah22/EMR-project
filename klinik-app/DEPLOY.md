@@ -20,7 +20,7 @@ TTL: 300
 
 Tunggu 1–5 menit sampai propagasi DNS selesai. Cek dengan:
 ```bash
-nslookup klinik.domain.com
+nslookup klinik.elzahrawimedikacihaurbeuti.com
 ```
 
 ---
@@ -143,7 +143,7 @@ docker compose -f docker-compose.prod.yml exec postgres \
 **SSL tidak bisa di-generate:**
 - Pastikan domain sudah pointing ke IP VPS
 - Pastikan port 80 tidak diblok firewall
-- Cek: `curl http://klinik.domain.com`
+- Cek: `curl http://klinik.elzahrawimedikacihaurbeuti.com`
 
 **Container app tidak start:**
 ```bash
