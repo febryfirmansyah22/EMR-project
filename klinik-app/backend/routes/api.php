@@ -11,6 +11,9 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ActivityLogController;
 use Illuminate\Support\Facades\Route;
 
+// Health check (untuk Railway)
+Route::get('/api/v1/health', fn() => response()->json(['status' => 'ok']));
+
 // Auth routes (public)
 Route::prefix('api/v1/auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
