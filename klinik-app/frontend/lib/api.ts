@@ -41,8 +41,8 @@ api.interceptors.response.use(
 export const setToken = (token: string) => {
   Cookies.set(TOKEN_KEY, token, {
     expires: 7,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    secure: false,
+    sameSite: "lax",
   });
 };
 
