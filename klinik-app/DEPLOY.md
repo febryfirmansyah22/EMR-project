@@ -1,9 +1,15 @@
 # Deploy Guide — Klinik App ke VPS Sumopod
 
+## Info VPS
+| | |
+|---|---|
+| Public IP | `43.133.146.200` |
+| Username | `ubuntu` |
+| Domain | `klinik.elzahrawimedikacihaurbeuti.com` |
+
 ## Prasyarat
-- VPS Ubuntu 22.04/24.04
-- Domain sudah pointing ke IP VPS (A record)
-- Akses SSH ke VPS (root atau sudo user)
+- Domain sudah pointing ke IP VPS (A record) — lihat Langkah 1
+- Akses SSH ke VPS
 
 ---
 
@@ -30,10 +36,10 @@ nslookup klinik.elzahrawimedikacihaurbeuti.com
 SSH ke VPS lalu:
 
 ```bash
-ssh root@IP_VPS
+ssh ubuntu@43.133.146.200
 
 # Install git jika belum ada
-apt-get update && apt-get install -y git
+sudo apt-get update && sudo apt-get install -y git
 
 # Clone repo
 git clone https://github.com/febryfirmansyah22/EMR-project.git
@@ -63,7 +69,7 @@ CERTBOT_EMAIL=email@kamu.com      # ← email untuk notifikasi SSL
 ## Langkah 4 — Jalankan Deploy Script
 
 ```bash
-chmod +x deploy.sh
+chmod +x deploy.sh update.sh
 sudo ./deploy.sh
 ```
 
@@ -81,7 +87,7 @@ Script ini otomatis:
 
 ## Langkah 5 — Akses Aplikasi
 
-Buka browser: `https://klinik.namadomain.com`
+Buka browser: `https://klinik.elzahrawimedikacihaurbeuti.com`
 
 Login pertama:
 - Email: `admin@klinik.com`

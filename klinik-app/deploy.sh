@@ -1,7 +1,8 @@
 #!/bin/bash
 # ============================================================
 # Deploy script — Klinik App untuk Ubuntu 22.04/24.04 (VPS)
-# Jalankan sebagai root atau user dengan sudo
+# VPS: 43.133.146.200 (Sumopod) | User: ubuntu
+# Jalankan: sudo ./deploy.sh
 # ============================================================
 set -e
 
@@ -41,6 +42,8 @@ if ! command -v docker &> /dev/null; then
     apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
     systemctl enable docker
     systemctl start docker
+    # Tambahkan user ubuntu ke group docker agar tidak perlu sudo tiap docker command
+    usermod -aG docker ubuntu 2>/dev/null || true
     info "Docker terinstall: $(docker --version)"
 else
     info "Docker sudah ada: $(docker --version)"
@@ -52,9 +55,11 @@ if ss -tlnp | grep -q ':80 '; then
     systemctl stop nginx apache2 2>/dev/null || true
 fi
 
-# ── 3. Setup nginx config dengan domain yang benar ───────────
+# ── 3. Setup nginx config (domain sudah hardcoded, skip jika tidak ada placeholder) ──
 info "Mengkonfigurasi nginx untuk domain $DOMAIN..."
-sed -i "s/DOMAIN_PLACEHOLDER/$DOMAIN/g" docker/nginx/default.conf
+if grep -q "DOMAIN_PLACEHOLDER" docker/nginx/default.conf 2>/dev/null; then
+    sed -i "s/DOMAIN_PLACEHOLDER/$DOMAIN/g" docker/nginx/default.conf
+fi
 
 # ── 4. Setup backend .env ─────────────────────────────────────
 if [ ! -f backend/.env ]; then
