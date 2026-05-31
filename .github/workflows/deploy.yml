@@ -1,0 +1,26 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - claude/confident-planck-Ww4xn
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /opt/klinik-app
+            git fetch origin
+            git checkout claude/confident-planck-Ww4xn
+            git reset --hard origin/claude/confident-planck-Ww4xn
+            cd klinik-app
+            docker compose -f docker-compose.simple.yml build
+            docker compose -f docker-compose.simple.yml up -d
