@@ -45,7 +45,8 @@
       "Bash(dir \"F:\\\\EMR project\\\\frontend\\\\node_modules\\\\@hookform\\\\resolvers\" /b)",
       "Bash(curl -s -o /dev/null -w \"Next.js: %{http_code}\\\\n\" http://localhost:3000)",
       "Bash(curl -s -o /dev/null -w \"Laravel: %{http_code}\\\\n\" http://localhost:8000/api/v1/auth/me)",
-      "Bash(echo \"Exit code: $?\")"
+      "Bash(echo \"Exit code: $?\")",
+      "Bash(mkdir -p /home/user/.claude)"
     ]
   }
 }
